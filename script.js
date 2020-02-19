@@ -6,7 +6,8 @@ class App {
   static run() {
     APIService.fetchMovie(534)
       .then(movie => Page.renderMovie(movie))
-  }
+      APIService.fetchActor(534).then(actors => Page.renderActor(actors))
+      }
 }
 
 class APIService {
@@ -16,6 +17,17 @@ class APIService {
     return fetch(url)
       .then(res => res.json())
       .then(json => new Movie(json))
+  }
+  static fetchActor(movieId) {
+    const url = APIService._constructUrl(`movie/${movieId}/credits`)
+    return fetch(url)
+      .then(res => res.json())
+      .then(json =>  {
+        let arr = json.cast.slice(0,4)
+        //console.log(arr)
+        //arr.forEach(actor => new Actor(actor))
+        return arr
+      })
   }
 
   static  _constructUrl(path) {
@@ -29,6 +41,7 @@ class Page {
   static releaseDate = document.getElementById('movie-release-date')
   static runtime = document.getElementById('movie-runtime')
   static overview = document.getElementById('movie-overview')
+  static actorLi = document.getElementById('actors')
 
   static renderMovie(movie) {
     Page.backdrop.src = BACKDROP_BASE_URL + movie.backdropPath
@@ -37,8 +50,27 @@ class Page {
     Page.runtime.innerText = movie.runtime + " minutes"
     Page.overview.innerText = movie.overview
   }
+  static renderActor(actors){
+    console.log(actors)
+    for (let i=0;i<actors.length;i++){
+       let li = document.createElement('li')
+       let img = document.createElement('img')
+       img.src = `${PROFILE_BASE_URL}${actors[i].profile_path}`
+       li.append(img)
+       let h = document.createElement('h3')
+       h.innerText = `${actors[i].name}`
+       li.append(h)
+       let hp = document.createElement('p')
+       hp.innerText =  `charachter name is : ${actors[i].character}`
+       li.append(hp)
+       this.actorLi.append(li)
+    }
+    
+  }
 }
+     
 
+ 
 class Movie {
   constructor(json) {
     this.id = json.id
@@ -47,6 +79,13 @@ class Movie {
     this.runtime = json.runtime
     this.overview = json.overview
     this.backdropPath = json.backdrop_path
+  }
+}
+class Actor{
+  constructor(json){
+    this.name = json.name 
+    this.character = json.character 
+    this.profile_path = json.profile_path
   }
 }
 
